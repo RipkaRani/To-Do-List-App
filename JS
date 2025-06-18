@@ -1,0 +1,100 @@
+// Get the task form and task list elements
+const taskForm = document.getElementById('task-form');
+const taskInput = document.getElementById('task-input');
+const taskList = document.getElementById('task-list');
+const errorMessage = document.getElementById('error-message');
+
+// Initialize the tasks array
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+// Add event listener to the task form
+taskForm.addEventListener('submit', addTask);
+
+// Function to add a new task
+function addTask(event) {
+    event.preventDefault();
+    const taskText = taskInput.value.trim();
+    if (taskText === '') {
+        showError('Please enter a task');
+        return;
+    }
+
+    const task = {
+        text: taskText,
+        completed: false
+    };
+
+    tasks.push(task);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    taskInput.value = '';
+    renderTasks();
+}
+
+// Function to render the tasks
+function renderTasks() {
+    taskList.innerHTML = '';
+    tasks.forEach((task, index) => {
+        const taskElement = document.createElement('li');
+        taskElement.classList.add('task');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.completed;
+        checkbox.addEventListener('change', () => toggleCompleted(index));
+
+        const taskText = document.createElement('span');
+        taskText.textContent = task.text;
+        if (task.completed) taskText.classList.add('completed');
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => editTask(index));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => deleteTask(index));
+
+        taskElement.appendChild(checkbox);
+        taskElement.appendChild(taskText);
+        taskElement.appendChild(editBtn);
+        taskElement.appendChild(deleteBtn);
+        taskList.appendChild(taskElement);
+    });
+}
+
+// Function to toggle the completed state of a task
+function toggleCompleted(index) {
+    tasks[index].completed = !tasks[index].completed;
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderTasks();
+}
+
+// Function to edit a task
+function editTask(index) {
+    const newText = prompt('Enter new task text:', tasks[index].text);
+    if (newText !== null && newText.trim() !== '') {
+        tasks[index].text = newText;
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        renderTasks();
+    } else if (newText === '') {
+        showError('Please enter a task');
+    }
+}
+
+// Function to delete a task
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderTasks();
+}
+
+// Function to show error message
+function showError(message) {
+    errorMessage.textContent = message;
+    setTimeout(() => {
+        errorMessage.textContent = '';
+    }, 3000);
+}
+
+// Render the tasks on page load
+renderTasks();
